@@ -13,7 +13,7 @@ const sites = [
   {
     from: "LandonGames",
     to: "games/",
-    files: ["index.html", "sw.js", "manifest.webmanifest", "css", "js", "fonts", "vendor", "icons", "photos"],
+    files: ["index.html", "sw.js", "manifest.webmanifest", "css", "js", "fonts", "vendor", "icons", "photos", "voice"],
   },
   {
     from: "MarbleRun",
@@ -33,6 +33,8 @@ const sites = [
 for (const app of ["MarbleRun", "LandonGames"]) {
   execFileSync(process.execPath, ["tools/stamp-sw.mjs", "--check"], { cwd: `${repos}${app}`, stdio: "inherit" });
 }
+// Every line the Game Room says needs its recorded clip (tools/voice.mjs build).
+execFileSync(process.execPath, ["tools/voice.mjs", "check"], { cwd: `${repos}LandonGames`, stdio: "inherit" });
 
 // The Game Room publishes whatever is in its folder, committed or not.
 try {

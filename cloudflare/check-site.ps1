@@ -182,6 +182,22 @@ function Test-Photos([string] $Base) {
     }
 }
 
+# The Game Room's narrator: every line listed, and the clips served as audio.
+function Test-Voice([string] $Base) {
+    $response = Invoke-Probe "$Base/voice/manifest.json"
+    $clips = @()
+    if ($response.Status -eq 200) {
+        try { $clips = @((ConvertFrom-Json $response.Body).lines.PSObject.Properties | ForEach-Object { $_.Value }) } catch { }
+    }
+    Write-Result (Get-Verdict ($clips.Count -gt 0)) "$Base/voice/manifest.json lists the narrator's lines" "$(Get-Outcome $response), $($clips.Count) lines"
+    if ($clips.Count -eq 0) { return }
+
+    $url = "$Base/voice/$($clips[0])"
+    $clip = Invoke-Probe $url
+    $ok = $clip.Status -eq 200 -and "$($clip.Headers['content-type'])" -like 'audio/mpeg*' -and $clip.Bytes -le 120KB
+    Write-Result (Get-Verdict $ok) "$url is a short audio clip" "$(Get-Outcome $clip), $($clip.Headers['content-type']), $([math]::Round($clip.Bytes / 1KB)) KB"
+}
+
 function Test-Nameservers {
     $check = "$Domain uses Cloudflare nameservers"
     try {
@@ -228,6 +244,7 @@ Test-Contains "$site/marblerun/sw.js" "const VERSION = 'mr-" 'is Marble Run''s w
 Test-Contains "$site/games/sw.js" "const VERSION = 'lg-" 'is the Game Room''s worker'
 Test-ContentType "$site/games/fonts/fredoka-latin.woff2" 'font/woff2'
 Test-Photos "$site/games"
+Test-Voice "$site/games"
 Test-Contains "$site/search/sw.js" $PicturesWorkerFix 'has the cache fix'
 
 $null = Test-Search "$site/search/api/search?q=cat" 'answers (cache-only lookup)'
