@@ -1,0 +1,51 @@
+{
+  // Cloudflare Workers config for landonarcher.com. Publish with `npm run deploy`
+  // (build.mjs, then wrangler deploy).
+  // build.mjs copies the four projects into ./dist: the home page at /, the Game
+  // Room at /games/, Marble Run at /marblerun/ and Pictures at /search/. Cloudflare
+  // serves those files directly, free and unmetered. src/worker.js runs first only
+  // for the paths below: Pictures' search API and picture URLs, the three app
+  // folders typed without their slash, and their index.html files. Those runs count
+  // toward the account's free 100,000 Worker requests a day, which plum-track,
+  // off-ramp and tonyt908 share.
+  "name": "landonarcher",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/search/api/*",
+      "/search/img/*",
+      "/games",
+      "/marblerun",
+      "/search",
+      "/index.html",
+      "/games/index.html",
+      "/marblerun/index.html",
+      "/search/index.html"
+    ]
+  },
+  // Pictures' search index, aliases and settings. The pictures themselves are kept
+  // in Cloudflare's cache and on the iPad, not here.
+  // Optional secrets (wrangler secret put NAME): ADMIN_KEY turns on
+  // /search/admin.html; OPENVERSE_CLIENT_ID and OPENVERSE_CLIENT_SECRET lift
+  // Openverse's anonymous limits.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "landonarcher-pictures",
+      "database_id": "8a39c342-0e88-4d5d-b7bc-12586ae44bc5"
+    }
+  ],
+  // Once a day, forget pictures nobody has looked at for 30 days.
+  "triggers": { "crons": ["30 8 * * *"] },
+  // Every request to either hostname goes to this Worker. Routes need a proxied DNS
+  // record for the hostname, and the zone's two A records are those: keep them,
+  // proxied (orange cloud). The address they hold is never contacted, because
+  // this Worker answers everything.
+  "routes": [
+    { "pattern": "landonarcher.com/*", "zone_name": "landonarcher.com" },
+    { "pattern": "www.landonarcher.com/*", "zone_name": "landonarcher.com" }
+  ]
+}

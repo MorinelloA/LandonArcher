@@ -1,0 +1,21 @@
+# Installed and built in cloudflare/ by npm and wrangler
+node_modules/
+dist/
+.wrangler/
+
+# Local secrets. The live site's are set with `wrangler secret put`.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+
+# Logs
+*.log
+
+# Local tool settings
+.claude/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini

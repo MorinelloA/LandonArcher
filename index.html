@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Selection Tool — choose a category, then select multiple items to view them.">
+    <title>Selection Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="container">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+            <span class="theme-icon" aria-hidden="true">🌙</span>
+        </button>
+        <header class="header" role="banner">
+            <h1>Selection Tool</h1>
+            <p>Choose a category, then select multiple items to view them</p>
+        </header>
+
+        <main class="content" id="main-content">
+            <section class="category-section" id="category-section" role="region" aria-labelledby="category-heading">
+                <h2 id="category-heading">Choose a Category</h2>
+                <div class="categories-grid" id="categories-grid" role="group" aria-labelledby="category-heading">
+                    <!-- Categories will be dynamically generated here -->
+                </div>
+            </section>
+
+            <section class="selection-section" role="region" aria-labelledby="selection-heading">
+                <div class="selection-header">
+                    <button type="button" class="back-btn" id="back-btn" aria-label="Go back to categories">
+                        ← Back to Categories
+                    </button>
+                    <h2 id="selection-heading">Choose Your Items</h2>
+                </div>
+                <form id="item-selection-form" aria-label="Item selection form">
+                    <div class="items-grid" role="group" aria-labelledby="selection-heading">
+                        <!-- Items will be dynamically generated here -->
+                    </div>
+                    <button type="submit" class="submit-btn" id="submit-btn" disabled aria-disabled="true">
+                        View Selected Items
+                    </button>
+                </form>
+            </section>
+
+            <section class="results-section" id="results-section" role="region" aria-labelledby="results-heading">
+                <div class="results-header">
+                    <h2 id="results-heading">Your Selected Items</h2>
+                </div>
+                <div class="selected-items" id="selected-items" role="list">
+                    <!-- Selected item will be displayed here -->
+                </div>
+            </section>
+        </main>
+
+        <footer role="contentinfo" class="footer">
+            <p class="sr-only">End of page content</p>
+        </footer>
+    </div>
+
+    <!-- Persistent live region for screen reader announcements (WCAG 4.1.3) -->
+    <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true" role="status"></div>
+
+    <script>
+        // Auto cache-busting for script.js
+        const script = document.createElement('script');
+        script.src = 'script.js?v=' + Date.now();
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>
