@@ -187,7 +187,9 @@ function Test-Voice([string] $Base) {
     $response = Invoke-Probe "$Base/voice/manifest.json"
     $clips = @()
     if ($response.Status -eq 200) {
-        try { $clips = @((ConvertFrom-Json $response.Body).lines.PSObject.Properties | ForEach-Object { $_.Value }) } catch { }
+        # read the clip names straight from the text: ConvertFrom-Json refuses keys that differ only
+        # in case, and the manifest has both "A! Nice tracing!" and "a! Nice tracing!"
+        $clips = @([regex]::Matches("$($response.Body)", '"[^"]+":\s*"([0-9a-f]{12}\.mp3)"') | ForEach-Object { $_.Groups[1].Value })
     }
     Write-Result (Get-Verdict ($clips.Count -gt 0)) "$Base/voice/manifest.json lists the narrator's lines" "$(Get-Outcome $response), $($clips.Count) lines"
     if ($clips.Count -eq 0) { return }
@@ -195,7 +197,7 @@ function Test-Voice([string] $Base) {
     $url = "$Base/voice/$($clips[0])"
     $clip = Invoke-Probe $url
     $ok = $clip.Status -eq 200 -and "$($clip.Headers['content-type'])" -like 'audio/mpeg*' -and $clip.Bytes -le 120KB
-    Write-Result (Get-Verdict $ok) "$url is a short audio clip" "$(Get-Outcome $clip), $($clip.Headers['content-type']), $([math]::Round($clip.Bytes / 1KB)) KB"
+    Write-Result (Get-Verdict $ok) "$url is a short audio clip" "$(Get-Outcome $clip), $([math]::Round($clip.Bytes / 1KB)) KB"
 }
 
 function Test-Nameservers {
