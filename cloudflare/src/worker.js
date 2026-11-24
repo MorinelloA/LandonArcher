@@ -1,8 +1,8 @@
-// landonarcher.com. Cloudflare serves the four sites' files from ./dist without
+// landonarcher.com. Cloudflare serves the five sites' files from ./dist without
 // running this script; wrangler.jsonc runs it first only for the paths handled here.
 import { handlePictures, tidyPictures } from "./pictures/index.js";
 
-const APP_FOLDERS = new Set(["/games", "/marblerun", "/search"]);
+const APP_FOLDERS = new Set(["/games", "/marblerun", "/search", "/bubble-wall"]);
 
 export default {
   async fetch(request, env, ctx) {

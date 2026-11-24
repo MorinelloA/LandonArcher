@@ -1,10 +1,11 @@
 {
   // Cloudflare Workers config for landonarcher.com. Publish with `npm run deploy`
   // (build.mjs, then wrangler deploy).
-  // build.mjs copies the four projects into ./dist: the home page at /, the Game
-  // Room at /games/, Marble Run at /marblerun/ and Pictures at /search/. Cloudflare
+  // build.mjs copies the five projects into ./dist: the home page at /, the Game
+  // Room at /games/, Marble Run at /marblerun/, Pictures at /search/ and Bubble Wall
+  // at /bubble-wall/ (which the home page does not link to). Cloudflare
   // serves those files directly, free and unmetered. src/worker.js runs first only
-  // for the paths below: Pictures' search API and picture URLs, the three app
+  // for the paths below: Pictures' search API and picture URLs, the four app
   // folders typed without their slash, and their index.html files. Those runs count
   // toward the account's free 100,000 Worker requests a day, which plum-track,
   // off-ramp and tonyt908 share.
@@ -20,10 +21,12 @@
       "/games",
       "/marblerun",
       "/search",
+      "/bubble-wall",
       "/index.html",
       "/games/index.html",
       "/marblerun/index.html",
-      "/search/index.html"
+      "/search/index.html",
+      "/bubble-wall/index.html"
     ]
   },
   // Pictures' search index, aliases and settings. The pictures themselves are kept

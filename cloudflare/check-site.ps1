@@ -3,14 +3,14 @@
     Pass/fail checks for landonarcher.com on Cloudflare.
 
 .DESCRIPTION
-    Checks the four sites, Pictures' search and picture URLs, the redirects, the
+    Checks the five sites, Pictures' search and picture URLs, the redirects, the
     manifests, the service workers and the Game Room's photos. One check runs a
     real search, which costs one Openverse call.
 
     It looks the site up through Google's public DNS and sends every request to the
     address that returns, so a stale DNS cache on this PC can't send it elsewhere.
     -Local checks `npm run dev` (http://localhost:8787) instead, skipping the DNS
-    and https checks.
+    and https checks. Add -Port when wrangler picked another port.
 
     Windows only (curl.exe and Resolve-DnsName). Runs in Windows PowerShell 5.1 and
     PowerShell 7. The exit code is the number of failed checks.
@@ -22,7 +22,9 @@
     .\check-site.ps1 -Local
 #>
 param(
-    [switch] $Local
+    [switch] $Local,
+    # The port `npm run dev` is on. Wrangler moves to 8788 when 8787 is taken.
+    [int] $Port = 8787
 )
 
 $ErrorActionPreference = 'Stop'
@@ -119,6 +121,13 @@ function Test-ContentType([string] $Url, [string] $Type) {
     $response = Invoke-Probe $Url
     $actual = "$($response.Headers['content-type'])".Split(';')[0].Trim()
     Write-Result (Get-Verdict ($response.Status -eq 200 -and $actual -eq $Type)) "$Url is $Type" (Get-Outcome $response)
+}
+
+function Test-Header([string] $Url, [string] $Name, [string] $Text, [string] $Check) {
+    $response = Invoke-Probe $Url
+    $value = "$($response.Headers[$Name])"
+    $ok = $response.Status -eq 200 -and $value.Contains($Text)
+    Write-Result (Get-Verdict $ok) "$Url $Check" "${Name}: $value"
 }
 
 function Test-Contains([string] $Url, [string] $Text, [string] $Check) {
@@ -227,7 +236,7 @@ function Get-SiteAddress([string] $HostName) {
 Write-Host ''
 
 if ($Local) {
-    $site = 'http://localhost:8787'
+    $site = "http://localhost:$Port"
     Write-Host "Checking $site (npm run dev)." -ForegroundColor Cyan
 }
 else {
@@ -237,9 +246,9 @@ else {
     $script:EdgeIp = Get-SiteAddress $Domain
 }
 
-foreach ($path in '/', '/games/', '/marblerun/', '/search/') { Test-Page "$site$path" }
-foreach ($path in '/games', '/marblerun', '/search') { Test-Redirect "$site$path" "$site$path/" }
-foreach ($app in 'games', 'marblerun', 'search') {
+foreach ($path in '/', '/games/', '/marblerun/', '/search/', '/bubble-wall/') { Test-Page "$site$path" }
+foreach ($path in '/games', '/marblerun', '/search', '/bubble-wall') { Test-Redirect "$site$path" "$site$path/" }
+foreach ($app in 'games', 'marblerun', 'search', 'bubble-wall') {
     Test-ContentType "$site/$app/manifest.webmanifest" 'application/manifest+json'
 }
 Test-Contains "$site/marblerun/sw.js" "const VERSION = 'mr-" 'is Marble Run''s worker'
@@ -248,6 +257,11 @@ Test-ContentType "$site/games/fonts/fredoka-latin.woff2" 'font/woff2'
 Test-Photos "$site/games"
 Test-Voice "$site/games"
 Test-Contains "$site/search/sw.js" $PicturesWorkerFix 'has the cache fix'
+Test-Contains "$site/bubble-wall/sw.js" 'const PREFIX = "bubble-wall-"' 'is Bubble Wall''s worker'
+Test-Contains "$site/bubble-wall/" 'Content-Security-Policy' 'carries its security policy'
+Test-ContentType "$site/bubble-wall/icons/apple-touch-icon-180.png" 'image/png'
+Test-Header "$site/bubble-wall/" 'cache-control' 'no-transform' 'tells Cloudflare to add nothing to the page'
+Test-Header "$site/bubble-wall/" 'x-robots-tag' 'noindex' 'asks search engines not to index'
 
 $null = Test-Search "$site/search/api/search?q=cat" 'answers (cache-only lookup)'
 $result = Test-Search "$site/search/api/search?q=cat&live=true" 'finds pictures (real search)' -NeedImages
